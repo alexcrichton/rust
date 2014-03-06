@@ -37,7 +37,6 @@ script: |
   make -j4 rustc-stage1 &&
   make check-stage1-std check-stage1-rpass check-stage1-cfail check-stage1-rfail
 
-
 env:
   global:
     - NO_BENCH=1

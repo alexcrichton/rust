@@ -5,14 +5,17 @@ language: c
 
 # Before we start doing anything, install a stock LLVM
 install:
-  - sudo sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main' >> /etc/apt/sources.list"
+  - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main' >> /etc/apt/sources.list"
+  - sudo sh -c "echo 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main' >> /etc/apt/sources.list"
+  - sudo sh -c "echo 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main' >> /etc/apt/sources.list"
   - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
   - sudo apt-get update -qq
-  - sudo apt-get install -qq llvm-3.4 llvm-3.4-dev clang-3.4 lldb-3.4
-  - sudo apt-get install -qq llvm-3.3 llvm-3.3-dev clang-3.3 lldb-3.3
+  - sudo apt-get install -qq --force-yes -y llvm-$LLVM_VERSION
+    llvm-${LLVM_VERSION}-dev clang-$LLVM_VERSION lldb-$LLVM_VERSION
 
-# All of the llvm tools are suffixed with "-3.3" which we don't want, so symlink
-# them all into a local directory and just use that
+
+# All of the llvm tools are suffixed with "-$VERS" which we don't want, so
+# symlink them all into a local directory and just use that
 #
 # FIXME: this shouldn't update the src/llvm sub-repo, that takes about a minute
 #        it's gotta download so much stuff.
@@ -33,6 +36,9 @@ before_script:
 # As a result of https://github.com/travis-ci/travis-ci/issues/1066, we run
 # everything in one large command instead of multiple commands.
 script: |
+  if [[ $TRAVIS_PULL_REQUEST != 'false' ]]; then
+    if [[ $LLVM_VERSION == '3.3' ]]; then exit 0; fi
+  fi &&
   make tidy &&
   make -j4 rustc-stage1 &&
   make check-stage1-std check-stage1-rpass check-stage1-cfail check-stage1-rfail

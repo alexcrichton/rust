@@ -236,10 +236,12 @@ impl<T: Send> Drop for Queue<T> {
 
 #[cfg(test)]
 mod test {
-    use prelude::*;
+    use prelude::v1::*;
 
     use sync::Arc;
     use super::Queue;
+    use thread::Thread;
+    use comm::channel;
 
     #[test]
     fn smoke() {
@@ -316,7 +318,7 @@ mod test {
 
             let (tx, rx) = channel();
             let q2 = q.clone();
-            spawn(move|| {
+            let _t = Thread::spawn(move|| {
                 for _ in range(0u, 100000) {
                     loop {
                         match q2.pop() {

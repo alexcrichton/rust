@@ -30,6 +30,7 @@ use visit;
 use visit::Visitor;
 use parse::token;
 
+use std::ascii::AsciiCast;
 use std::slice;
 
 // if you change this list without updating src/doc/reference.md, @cmr will be sad

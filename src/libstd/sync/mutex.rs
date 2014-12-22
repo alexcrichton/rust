@@ -8,10 +8,11 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use prelude::*;
+use prelude::v1::*;
 
 use cell::UnsafeCell;
 use kinds::marker;
+use ops::{Deref, DerefMut};
 use sync::{poison, AsMutexGuard};
 use sys_common::mutex as sys;
 
@@ -36,6 +37,8 @@ use sys_common::mutex as sys;
 /// ```rust
 /// use std::sync::{Arc, Mutex};
 /// use std::thread::Thread;
+/// use std::comm::channel;
+///
 /// const N: uint = 10;
 ///
 /// // Spawn a few threads to increment a shared variable (non-atomically), and
@@ -273,10 +276,11 @@ impl Drop for StaticMutexGuard {
 
 #[cfg(test)]
 mod test {
-    use prelude::*;
+    use prelude::v1::*;
 
-    use thread::Thread;
+    use comm::channel;
     use sync::{Arc, Mutex, StaticMutex, MUTEX_INIT, Condvar};
+    use thread::Thread;
 
     #[test]
     fn smoke() {
@@ -314,9 +318,9 @@ mod test {
         let (tx, rx) = channel();
         for _ in range(0, K) {
             let tx2 = tx.clone();
-            spawn(move|| { inc(); tx2.send(()); });
+            Thread::spawn(move|| { inc(); tx2.send(()); }).detach();
             let tx2 = tx.clone();
-            spawn(move|| { inc(); tx2.send(()); });
+            Thread::spawn(move|| { inc(); tx2.send(()); }).detach();
         }
 
         drop(tx);
@@ -340,7 +344,7 @@ mod test {
         let arc = Arc::new((Mutex::new(false), Condvar::new()));
         let arc2 = arc.clone();
         let (tx, rx) = channel();
-        spawn(move|| {
+        let _t = Thread::spawn(move|| {
             // wait until parent gets in
             rx.recv();
             let &(ref lock, ref cvar) = &*arc2;
@@ -365,7 +369,7 @@ mod test {
         let arc2 = arc.clone();
         let (tx, rx) = channel();
 
-        spawn(move|| {
+        let _t = Thread::spawn(move || -> () {
             rx.recv();
             let &(ref lock, ref cvar) = &*arc2;
             let _g = lock.lock();
@@ -402,9 +406,9 @@ mod test {
         let arc = Arc::new(Mutex::new(1i));
         let arc2 = Arc::new(Mutex::new(arc));
         let (tx, rx) = channel();
-        spawn(move|| {
+        let _t = Thread::spawn(move|| {
             let lock = arc2.lock();
-            let lock2 = lock.deref().lock();
+            let lock2 = lock.lock();
             assert_eq!(*lock2, 1);
             tx.send(());
         });

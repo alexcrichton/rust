@@ -12,6 +12,7 @@
 
 pub use self::MaybeOwnedVector::*;
 
+use std::cmp::{Equiv, Ordering};
 use std::default::Default;
 use std::fmt;
 use std::iter::FromIterator;

@@ -447,7 +447,7 @@ static dot_dot_static: &'static [u8] = b"..";
 
 #[cfg(test)]
 mod tests {
-    use prelude::*;
+    use prelude::v1::*;
     use super::*;
     use str;
 
@@ -1237,7 +1237,7 @@ mod bench {
     extern crate test;
     use self::test::Bencher;
     use super::*;
-    use prelude::*;
+    use prelude::v1::*;
 
     #[bench]
     fn join_home_dir(b: &mut Bencher) {

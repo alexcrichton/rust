@@ -14,6 +14,8 @@ pub use self::Param::*;
 use self::States::*;
 use self::FormatState::*;
 use self::FormatOp::*;
+
+use std::ascii::AsciiCast;
 use std::mem::replace;
 
 #[deriving(Copy, PartialEq)]

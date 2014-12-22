@@ -37,7 +37,7 @@
 #![macro_escape]
 #![experimental]
 
-use prelude::*;
+use prelude::v1::*;
 
 use cell::UnsafeCell;
 
@@ -258,7 +258,7 @@ impl<T: 'static> Key<T> {
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod imp {
-    use prelude::*;
+    use prelude::v1::*;
 
     use cell::UnsafeCell;
     use intrinsics;
@@ -394,7 +394,7 @@ mod imp {
 
 #[cfg(not(any(target_os = "macos", target_os = "linux")))]
 mod imp {
-    use prelude::*;
+    use prelude::v1::*;
 
     use cell::UnsafeCell;
     use mem;
@@ -465,8 +465,9 @@ mod imp {
 
 #[cfg(test)]
 mod tests {
-    use prelude::*;
+    use prelude::v1::*;
 
+    use comm::{channel, Sender};
     use cell::UnsafeCell;
     use thread::Thread;
 
@@ -488,7 +489,7 @@ mod tests {
             *f.get() = 2;
         });
         let (tx, rx) = channel();
-        spawn(move|| {
+        let _t = Thread::spawn(move|| {
             FOO.with(|f| unsafe {
                 assert_eq!(*f.get(), 1);
             });
@@ -508,7 +509,7 @@ mod tests {
         });
 
         let (tx, rx) = channel();
-        spawn(move|| unsafe {
+        let _t = Thread::spawn(move|| unsafe {
             let mut tx = Some(tx);
             FOO.with(|f| {
                 *f.get() = Some(Foo(tx.take().unwrap()));
@@ -558,7 +559,7 @@ mod tests {
 
         Thread::spawn(move|| {
             drop(S1);
-        }).join();
+        }).join().ok().unwrap();
     }
 
     #[test]
@@ -576,7 +577,7 @@ mod tests {
 
         Thread::spawn(move|| unsafe {
             K1.with(|s| *s.get() = Some(S1));
-        }).join();
+        }).join().ok().unwrap();
     }
 
     #[test]
@@ -601,7 +602,7 @@ mod tests {
         }
 
         let (tx, rx) = channel();
-        spawn(move|| unsafe {
+        let _t = Thread::spawn(move|| unsafe {
             let mut tx = Some(tx);
             K1.with(|s| *s.get() = Some(S1(tx.take().unwrap())));
         });
@@ -611,7 +612,7 @@ mod tests {
 
 #[cfg(test)]
 mod dynamic_tests {
-    use prelude::*;
+    use prelude::v1::*;
 
     use cell::RefCell;
     use collections::HashMap;

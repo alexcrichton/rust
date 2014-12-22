@@ -630,8 +630,9 @@ static ASCII_UPPER_MAP: [u8, ..256] = [
 
 #[cfg(test)]
 mod tests {
-    use prelude::*;
+    use prelude::v1::*;
     use super::*;
+    use string::IntoString;
     use char::from_u32;
 
     macro_rules! v2ascii {
@@ -722,7 +723,7 @@ mod tests {
     }
 
     #[test]
-    fn test_ascii_into_string() {
+    fn test_ascii_to_string() {
         assert_eq!(vec2ascii![40, 32, 59].into_string(), "( ;");
         assert_eq!(vec2ascii!(40, 32, 59).into_string(), "( ;");
     }

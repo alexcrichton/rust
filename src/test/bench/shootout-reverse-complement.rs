@@ -45,9 +45,10 @@
 extern crate libc;
 
 use std::io::stdio::{stdin_raw, stdout_raw};
+use std::io::{IoResult, EndOfFile};
 use std::num::{div_rem};
 use std::ptr::{copy_memory};
-use std::io::{IoResult, EndOfFile};
+use std::thread::Thread;
 
 struct Tables {
     table8: [u8;1 << 8],
@@ -224,26 +225,20 @@ fn reverse_complement(seq: &mut [u8], tables: &Tables) {
 fn parallel<'a, I, T, F>(mut iter: I, f: F)
         where T: Send + Sync,
               I: Iterator<&'a mut [T]>,
-              F: Fn(&'a mut [T]) + Sync {
+              F: Fn(&mut [T]) + Sync {
     use std::mem;
     use std::raw::Repr;
 
-    let (tx, rx) = channel();
-    for chunk in iter {
-        let tx = tx.clone();
-
+    iter.map(|chunk| {
         // Need to convert `f` and `chunk` to something that can cross the task
         // boundary.
         let f = &f as *const F as *const uint;
         let raw = chunk.repr();
-        spawn(move|| {
+        Thread::spawn(move|| {
             let f = f as *const F;
             unsafe { (*f)(mem::transmute(raw)) }
-            drop(tx)
         });
-    }
-    drop(tx);
-    for () in rx.iter() {}
+    }).collect::<Vec<_>>();
 }
 
 fn main() {

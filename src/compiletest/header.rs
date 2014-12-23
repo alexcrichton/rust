@@ -11,6 +11,7 @@
 use common::Config;
 use common;
 use util;
+use std::str::from_str;
 
 pub struct TestProps {
     // Lines that should be expected, in order, on standard out

@@ -3,6 +3,10 @@ sudo: required
 services:
   - docker
 
+env: 
+  - CONFIGUREARGS=""
+  - CONFIGUREARGS="--enable-debug --enable-optimize"
+
 # LLVM takes awhile to check out and otherwise we'll manage the submodules in
 # our configure script, so disable auto submodule management.
 git:
@@ -13,7 +17,7 @@ before_install:
 script:
   - docker run --privileged -tv `pwd`:/build rust
     sh -c "
-      ./configure --llvm-root=/usr/lib/llvm-3.7 &&
+      ./configure --llvm-root=/usr/lib/llvm-3.7 $CONFIGUREARGS &&
       make tidy &&
       make check -j4
     "

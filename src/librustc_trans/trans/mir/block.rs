@@ -8,7 +8,7 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use llvm::{BasicBlockRef, ValueRef};
+use llvm::{BasicBlockRef, ValueRef, OperandBundleDef};
 use rustc::mir::repr as mir;
 use trans::adt;
 use trans::base;
@@ -30,6 +30,15 @@ impl<'bcx, 'tcx> MirContext<'bcx, 'tcx> {
         let mut bcx = self.bcx(bb);
         let data = self.mir.basic_block_data(bb);
 
+        let use_funclets = base::wants_msvc_seh(bcx.sess());
+        let funclet = if use_funclets && data.is_cleanup {
+            build::SetPersonalityFn(bcx, bcx.fcx.eh_personality());
+            Some(build::CleanupPad(bcx, None, &[]))
+        } else {
+            None
+        };
+        let funclet_bundle = funclet.map(|f| OperandBundleDef::new("funclet", &[f]));
+
         for statement in &data.statements {
             bcx = self.trans_statement(bcx, statement);
         }
@@ -37,8 +46,13 @@ impl<'bcx, 'tcx> MirContext<'bcx, 'tcx> {
         debug!("trans_block: terminator: {:?}", data.terminator());
 
         match *data.terminator() {
+            mir::Terminator::Resume if funclet.is_some() => {
+                build::CleanupRet(bcx, funclet.unwrap(), None);
+            },
+
             mir::Terminator::Goto { target } => {
-                build::Br(bcx, self.llblock(target), DebugLoc::None)
+                let target = self.bcx(target);
+                self.br(bcx, funclet, target, DebugLoc::None);
             }
 
             mir::Terminator::If { ref cond, targets: (true_bb, false_bb) } => {
@@ -126,35 +140,39 @@ impl<'bcx, 'tcx> MirContext<'bcx, 'tcx> {
                 }
 
                 // Many different ways to call a function handled here
-                match (base::avoid_invoke(bcx), kind) {
+                match (base::avoid_invoke(bcx) || data.is_cleanup, kind) {
                     // The two cases below are the only ones to use LLVM’s `invoke`.
                     (false, &mir::CallKind::DivergingCleanup(cleanup)) => {
                         let cleanup = self.bcx(cleanup);
-                        let landingpad = self.make_landing_pad(cleanup);
-                        build::Invoke(bcx,
-                                      callee.immediate(),
-                                      &llargs[..],
-                                      self.unreachable_block().llbb,
-                                      landingpad.llbb,
-                                      Some(attrs),
-                                      debugloc);
+                        let landingpad = if !use_funclets {
+                            self.make_landing_pad(cleanup)
+                        } else {
+                            cleanup
+                        };
+
+                        let unreachable = self.unreachable_block();
+                        build::B(bcx).invoke(callee.immediate(), &llargs[..], unreachable.llbb,
+                                             landingpad.llbb, None, Some(attrs));
                     },
                     (false, &mir::CallKind::ConvergingCleanup { ref targets, .. }) => {
                         let cleanup = self.bcx(targets.1);
-                        let landingpad = self.make_landing_pad(cleanup);
+                        let landingpad = if !use_funclets {
+                            self.make_landing_pad(cleanup)
+                        } else {
+                            cleanup
+                        };
                         let (target, postinvoke) = if must_copy_dest {
                             (bcx.fcx.new_block(None, "", None),
                              Some(self.bcx(targets.0)))
                         } else {
                             (self.bcx(targets.0), None)
                         };
-                        let invokeret = build::Invoke(bcx,
-                                                      callee.immediate(),
-                                                      &llargs[..],
-                                                      target.llbb,
-                                                      landingpad.llbb,
-                                                      Some(attrs),
-                                                      debugloc);
+                        let invokeret = build::B(bcx).invoke(callee.immediate(),
+                                                             &llargs[..],
+                                                             target.llbb,
+                                                             landingpad.llbb,
+                                                             funclet_bundle.as_ref(),
+                                                             Some(attrs));
                         if let Some(postinvoketarget) = postinvoke {
                             // We translate the copy into a temoprary block. The temporary block is
                             // necessary because the current block has already been terminated (by
@@ -188,28 +206,30 @@ impl<'bcx, 'tcx> MirContext<'bcx, 'tcx> {
                     },
                     (_, &mir::CallKind::DivergingCleanup(_)) |
                     (_, &mir::CallKind::Diverging) => {
-                        build::Call(bcx, callee.immediate(), &llargs[..], Some(attrs), debugloc);
+                        build::B(bcx).call(callee.immediate(),
+                                           &llargs[..],
+                                           funclet_bundle.as_ref(),
+                                           Some(attrs));
                         build::Unreachable(bcx);
                     }
                     (_, k@&mir::CallKind::ConvergingCleanup { .. }) |
                     (_, k@&mir::CallKind::Converging { .. }) => {
                         // Bug #20046
-                        let target = match *k {
+                        let target = self.bcx(match *k {
                             mir::CallKind::ConvergingCleanup { targets, .. } => targets.0,
                             mir::CallKind::Converging { target, .. } => target,
                             _ => unreachable!()
-                        };
-                        let llret = build::Call(bcx,
-                                                callee.immediate(),
-                                                &llargs[..],
-                                                Some(attrs),
-                                                debugloc);
+                        });
+                        let llret = build::B(bcx).call(callee.immediate(),
+                                                       &llargs[..],
+                                                       funclet_bundle.as_ref(),
+                                                       Some(attrs));
                         if must_copy_dest {
                             let (ret_dest, ret_ty) = ret_dest_ty
                                 .expect("return destination and type not set");
                             base::store_ty(bcx, llret, ret_dest.llval, ret_ty);
                         }
-                        build::Br(bcx, self.llblock(target), debugloc);
+                        self.br(bcx, funclet, target, debugloc);
                     }
                 }
             }
@@ -252,6 +272,22 @@ impl<'bcx, 'tcx> MirContext<'bcx, 'tcx> {
                 self.unreachable_block = Some(bl);
                 bl
             }
+        }
+    }
+
+    /// Translates the unconditional jump.
+    ///
+    /// Depending on the whether passed-in `funclet` is None or Some, it will translate into
+    /// `br` or `cleanupret`.
+    fn br(&mut self,
+          bcx: Block<'bcx, 'tcx>,
+          funclet: Option<ValueRef>,
+          target: Block<'bcx, 'tcx>,
+          debugloc: DebugLoc) {
+        if let Some(f) = funclet {
+            build::CleanupRet(bcx, f, Some(target.llbb));
+        } else {
+            build::Br(bcx, target.llbb, debugloc);
         }
     }
 

@@ -14,7 +14,7 @@ use rustc::mir::repr as mir;
 use rustc::mir::tcx::LvalueTy;
 use trans::base;
 use trans::build;
-use trans::common::{self, Block, LandingPad};
+use trans::common::{self, Block};
 use trans::debuginfo::DebugLoc;
 use trans::expr;
 use trans::type_of;
@@ -114,13 +114,7 @@ pub fn trans_mir<'bcx, 'tcx>(bcx: Block<'bcx, 'tcx>) {
     let block_bcxs: Vec<Block<'bcx,'tcx>> =
         mir_blocks.iter()
                   .map(|&bb|{
-                      let is_cleanup = mir.basic_block_data(bb).is_cleanup;
-                      let lpad = if is_cleanup {
-                          Some(LandingPad::gnu())
-                      } else {
-                          None
-                      };
-                      fcx.new_block(lpad, &format!("{:?}", bb), None)
+                      fcx.new_block(None, &format!("{:?}", bb), None)
                   })
                   .collect();
 

@@ -243,7 +243,8 @@ impl<'a> Linker for GnuLinker<'a> {
         // exported symbols to ensure we don't expose any more. The object files
         // have far more public symbols than we actually want to export, so we
         // hide them all here.
-        if crate_type == CrateType::CrateTypeDylib {
+        if crate_type == CrateType::CrateTypeDylib ||
+           crate_type == CrateType::CrateTypeRustcMacro {
             return
         }
 
@@ -456,7 +457,8 @@ fn exported_symbols(scx: &SharedCrateContext,
 
     // See explanation in GnuLinker::export_symbols, for
     // why we don't ever need dylib symbols on non-MSVC.
-    if crate_type == CrateType::CrateTypeDylib {
+    if crate_type == CrateType::CrateTypeDylib ||
+       crate_type == CrateType::CrateTypeRustcMacro {
         if !scx.sess().target.target.options.is_like_msvc {
             return vec![];
         }

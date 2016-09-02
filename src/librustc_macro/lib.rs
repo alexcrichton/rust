@@ -16,7 +16,7 @@
 //! new custom derive modes through `#[rustc_macro_derive]`.
 //!
 //! Added recently as part of [RFC 1681] this crate is currently *unstable* and
-//! requires the `#![feature(rustc_macro)]` directive to use. Eventually,
+//! requires the `#![feature(rustc_macro_lib)]` directive to use. Eventually,
 //! though, it is intended for this crate to become stable to use (perhaps under
 //! a different name).
 //!

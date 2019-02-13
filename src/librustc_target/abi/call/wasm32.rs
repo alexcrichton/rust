@@ -5,7 +5,11 @@ fn classify_ret_ty<Ty>(ret: &mut ArgType<'_, Ty>) {
 }
 
 fn classify_arg_ty<Ty>(arg: &mut ArgType<'_, Ty>) {
-    arg.extend_integer_width_to(32);
+    if arg.layout.is_aggregate() {
+        arg.make_indirect();
+    } else {
+        arg.extend_integer_width_to(32);
+    }
 }
 
 pub fn compute_abi_info<Ty>(fty: &mut FnType<'_, Ty>) {

@@ -68,5 +68,8 @@ rustc-workspace-hack = { path = 'src/tools/rustc-workspace-hack' }
 # here
 rustc-std-workspace-core = { path = 'src/tools/rustc-std-workspace-core' }
 
+libc = { git = 'https://github.com/alexcrichton/libc', branch = 'wasi' }
+#libc = { path = "../libc" }
+
 [patch."https://github.com/rust-lang/rust-clippy"]
 clippy_lints = { path = "src/tools/clippy/clippy_lints" }

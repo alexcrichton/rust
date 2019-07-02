@@ -267,7 +267,8 @@ static Optional<Reloc::Model> fromRust(LLVMRustRelocMode RustReloc) {
 #ifdef LLVM_RUSTLLVM
 /// getLongestEntryLength - Return the length of the longest entry in the table.
 ///
-static size_t getLongestEntryLength(ArrayRef<SubtargetFeatureKV> Table) {
+template<typename T>
+static size_t getLongestEntryLength(ArrayRef<T> Table) {
   size_t MaxLen = 0;
   for (auto &I : Table)
     MaxLen = std::max(MaxLen, std::strlen(I.Key));
@@ -279,7 +280,7 @@ extern "C" void LLVMRustPrintTargetCPUs(LLVMTargetMachineRef TM) {
   const MCSubtargetInfo *MCInfo = Target->getMCSubtargetInfo();
   const Triple::ArchType HostArch = Triple(sys::getProcessTriple()).getArch();
   const Triple::ArchType TargetArch = Target->getTargetTriple().getArch();
-  const ArrayRef<SubtargetFeatureKV> CPUTable = MCInfo->getCPUTable();
+  const ArrayRef<SubtargetSubTypeKV> CPUTable = MCInfo->getCPUTable();
   unsigned MaxCPULen = getLongestEntryLength(CPUTable);
 
   printf("Available CPUs for this target:\n");
@@ -289,7 +290,7 @@ extern "C" void LLVMRustPrintTargetCPUs(LLVMTargetMachineRef TM) {
       MaxCPULen, "native", (int)HostCPU.size(), HostCPU.data());
   }
   for (auto &CPU : CPUTable)
-    printf("    %-*s - %s.\n", MaxCPULen, CPU.Key, CPU.Desc);
+    printf("    %-*s\n", MaxCPULen, CPU.Key);
   printf("\n");
 }
 
@@ -913,7 +914,14 @@ LLVMRustCreateThinLTOData(LLVMRustThinLTOModule *modules,
                               GlobalValue::LinkageTypes NewLinkage) {
     ResolvedODR[ModuleIdentifier][GUID] = NewLinkage;
   };
-#if LLVM_VERSION_GE(8, 0)
+#if LLVM_VERSION_GE(9, 0)
+  thinLTOResolvePrevailingInIndex(
+    Ret->Index,
+    isPrevailing,
+    recordNewLinkage,
+    Ret->GUIDPreservedSymbols
+  );
+#elif LLVM_VERSION_GE(8, 0)
   thinLTOResolvePrevailingInIndex(Ret->Index, isPrevailing, recordNewLinkage);
 #else
   thinLTOResolveWeakForLinkerInIndex(Ret->Index, isPrevailing, recordNewLinkage);

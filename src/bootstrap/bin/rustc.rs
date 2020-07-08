@@ -101,6 +101,10 @@ fn main() {
         {
             cmd.arg("-C").arg("panic=abort");
         }
+
+        if stage != "0" && crate_name == Some("rustc_driver") {
+            cmd.arg("-C").arg("prefer-dynamic=no");
+        }
     } else {
         // FIXME(rust-lang/cargo#5754) we shouldn't be using special env vars
         // here, but rather Cargo should know what flags to pass rustc itself.

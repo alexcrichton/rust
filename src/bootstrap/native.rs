@@ -789,3 +789,49 @@ impl HashStamp {
         fs::write(&self.path, self.hash.as_deref().unwrap_or(b""))
     }
 }
+
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
+pub struct Mimalloc {
+    pub target: Interned<String>,
+}
+
+impl Step for Mimalloc {
+    type Output = PathBuf;
+
+    const ONLY_HOSTS: bool = true;
+
+    fn should_run(run: ShouldRun<'_>) -> ShouldRun<'_> {
+        run.path("src/mimalloc")
+    }
+
+    fn make_run(run: RunConfig<'_>) {
+        run.builder.ensure(Mimalloc { target: run.target });
+    }
+
+    fn run(self, builder: &Builder<'_>) -> PathBuf {
+        let target = self.target;
+        let out_dir = builder.out.join(&*target).join("mimalloc");
+        let libdir = out_dir.join("lib/mimalloc-1.6");
+        let done_stamp = out_dir.join("mimalloc-finished-building");
+        if done_stamp.exists() {
+            return libdir;
+        }
+
+        builder.info(&format!("Building mimalloc for {}", target));
+
+        let mut cfg = cmake::Config::new(builder.src.join("src/mimalloc"));
+        cfg.out_dir(&out_dir)
+            .profile("Release")
+            .define("MI_BUILD_TESTS", "OFF")
+            .define("MI_BUILD_SHARED", "OFF")
+            .define("MI_BUILD_OBJECT", "OFF");
+
+        configure_cmake(builder, target, &mut cfg, true);
+
+        t!(fs::create_dir_all(&out_dir));
+        cfg.build();
+        t!(File::create(&done_stamp));
+
+        return libdir;
+    }
+}

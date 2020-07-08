@@ -608,6 +608,8 @@ pub fn rustc_cargo_env(builder: &Builder<'_>, cargo: &mut Cargo, target: Interne
             cargo.env("LLVM_NDEBUG", "1");
         }
     }
+    let mimalloc_dir = builder.ensure(native::Mimalloc { target });
+    cargo.rustflag(&format!("-L{}", mimalloc_dir.display()));
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]

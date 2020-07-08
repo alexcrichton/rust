@@ -158,7 +158,7 @@ fn calculate_type(tcx: TyCtxt<'_>, ty: CrateType) -> DependencyList {
         }
         let name = tcx.crate_name(cnum);
         let src = tcx.used_crate_source(cnum);
-        if src.dylib.is_some() {
+        if src.dylib.is_some() && formats.get(&cnum).is_none() {
             log::info!("adding dylib: {}", name);
             add_library(tcx, cnum, RequireDynamic, &mut formats);
             let deps = tcx.dylib_dependency_formats(cnum);

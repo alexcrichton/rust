@@ -296,6 +296,8 @@ for key in known_args:
                 value = True
             elif keyval[1] == "false":
                 value = False
+            elif keyval[1] == "[]":
+                value = []
             else:
                 value = keyval[1]
             set(keyval[0], value)

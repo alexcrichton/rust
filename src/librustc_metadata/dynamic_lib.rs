@@ -154,3 +154,25 @@ mod dl {
         if ptr.is_null() { Err(io::Error::last_os_error().to_string()) } else { Ok(ptr) }
     }
 }
+
+#[cfg(target_os = "wasi")]
+mod dl {
+    use std::ffi::OsStr;
+    use std::io;
+    use std::ptr;
+
+    pub(super) fn open(filename: &OsStr) -> Result<*mut u8, String> {
+        Err("dlopen not supported on wasi".to_string())
+    }
+
+    pub(super) unsafe fn symbol(
+        handle: *mut u8,
+        symbol: *const libc::c_char,
+    ) -> Result<*mut u8, String> {
+        Err("dlopen not supported on wasi".to_string())
+    }
+
+    pub(super) unsafe fn close(handle: *mut u8) {
+        panic!()
+    }
+}

@@ -1193,7 +1193,8 @@ pub fn build_session(
     let print_fuel = AtomicU64::new(0);
 
     let working_dir = env::current_dir().unwrap_or_else(|e| {
-        parse_sess.span_diagnostic.fatal(&format!("Current directory is invalid: {}", e)).raise()
+        ".".into()
+        // parse_sess.span_diagnostic.fatal(&format!("Current directory is invalid: {}", e)).raise()
     });
     let working_dir = file_path_mapping.map_prefix(working_dir);
 

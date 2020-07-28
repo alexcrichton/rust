@@ -13,5 +13,11 @@ const STACK_PER_RECURSION: usize = 1 * 1024 * 1024; // 1MB
 ///
 /// Should not be sprinkled around carelessly, as it causes a little bit of overhead.
 pub fn ensure_sufficient_stack<R>(f: impl FnOnce() -> R) -> R {
-    stacker::maybe_grow(RED_ZONE, STACK_PER_RECURSION, f)
+    cfg_if::cfg_if! {
+        if #[cfg(any(unix, windows))] {
+            stacker::maybe_grow(RED_ZONE, STACK_PER_RECURSION, f)
+        } else {
+            f()
+        }
+    }
 }

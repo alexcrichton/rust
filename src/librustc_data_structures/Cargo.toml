@@ -29,6 +29,8 @@ rustc_index = { path = "../librustc_index", package = "rustc_index" }
 bitflags = "1.2.1"
 measureme = "0.7.1"
 libc = "0.2"
+
+[target.'cfg(any(unix, windows))'.dependencies]
 stacker = "0.1.9"
 
 [dependencies.parking_lot]

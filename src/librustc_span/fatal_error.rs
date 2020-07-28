@@ -13,7 +13,11 @@ impl !Send for FatalError {}
 
 impl FatalError {
     pub fn raise(self) -> ! {
-        std::panic::resume_unwind(Box::new(FatalErrorMarker))
+        if cfg!(target_os = "wasi") {
+            std::process::exit(2);
+        } else {
+            std::panic::resume_unwind(Box::new(FatalErrorMarker))
+        }
     }
 }
 

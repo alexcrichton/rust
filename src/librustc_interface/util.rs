@@ -106,24 +106,30 @@ impl Write for Sink {
 /// for `'static` bounds.
 #[cfg(not(parallel_compiler))]
 pub fn scoped_thread<F: FnOnce() -> R + Send, R: Send>(cfg: thread::Builder, f: F) -> R {
-    struct Ptr(*mut ());
-    unsafe impl Send for Ptr {}
-    unsafe impl Sync for Ptr {}
+    cfg_if::cfg_if! {
+        if #[cfg(target_os = "wasi")] {
+            f()
+        } else {
+            struct Ptr(*mut ());
+            unsafe impl Send for Ptr {}
+            unsafe impl Sync for Ptr {}
 
-    let mut f = Some(f);
-    let run = Ptr(&mut f as *mut _ as *mut ());
-    let mut result = None;
-    let result_ptr = Ptr(&mut result as *mut _ as *mut ());
+            let mut f = Some(f);
+            let run = Ptr(&mut f as *mut _ as *mut ());
+            let mut result = None;
+            let result_ptr = Ptr(&mut result as *mut _ as *mut ());
 
-    let thread = cfg.spawn(move || {
-        let run = unsafe { (*(run.0 as *mut Option<F>)).take().unwrap() };
-        let result = unsafe { &mut *(result_ptr.0 as *mut Option<R>) };
-        *result = Some(run());
-    });
+            let thread = cfg.spawn(move || {
+                let run = unsafe { (*(run.0 as *mut Option<F>)).take().unwrap() };
+                let result = unsafe { &mut *(result_ptr.0 as *mut Option<R>) };
+                *result = Some(run());
+            });
 
-    match thread.unwrap().join() {
-        Ok(()) => result.unwrap(),
-        Err(p) => panic::resume_unwind(p),
+            match thread.unwrap().join() {
+                Ok(()) => result.unwrap(),
+                Err(p) => panic::resume_unwind(p),
+            }
+        }
     }
 }
 
@@ -364,6 +370,11 @@ fn sysroot_candidates() -> Vec<PathBuf> {
             Some(PathBuf::from(os))
         }
     }
+
+    #[cfg(not(any(unix, windows)))]
+    fn current_dll_path() -> Option<PathBuf> {
+        None
+    }
 }
 
 pub fn get_builtin_codegen_backend(backend_name: &str) -> fn() -> Box<dyn CodegenBackend> {
@@ -373,9 +384,94 @@ pub fn get_builtin_codegen_backend(backend_name: &str) -> fn() -> Box<dyn Codege
             return rustc_codegen_llvm::LlvmCodegenBackend::new;
         }
     }
+    if backend_name == "dummy" {
+        return || Box::new(DummyCodegenBackend);
+    }
 
     let err = format!("unsupported builtin codegen backend `{}`", backend_name);
     early_error(ErrorOutputType::default(), &err);
+}
+
+use rustc_middle::dep_graph::DepGraph;
+use rustc_middle::middle::cstore::EncodedMetadata;
+use rustc_middle::middle::cstore::MetadataLoaderDyn;
+use rustc_middle::ty::query::Providers;
+use rustc_middle::ty::TyCtxt;
+use std::any::Any;
+
+struct DummyCodegenBackend;
+
+impl CodegenBackend for DummyCodegenBackend {
+    fn metadata_loader(&self) -> Box<MetadataLoaderDyn> {
+        Box::new(DummyMetadataLoader)
+    }
+
+    fn provide(&self, providers: &mut Providers) {
+        self.provide_extern(providers);
+    }
+
+    fn provide_extern(&self, providers: &mut Providers) {
+        providers.supported_target_features = |_tcx, _cnum| Default::default();
+    }
+
+    fn codegen_crate<'tcx>(
+        &self,
+        _tcx: TyCtxt<'tcx>,
+        _metadata: EncodedMetadata,
+        _need_metadata_module: bool,
+    ) -> Box<dyn Any> {
+        Box::new(())
+    }
+
+    fn join_codegen(
+        &self,
+        _ongoing_codegen: Box<dyn Any>,
+        _sess: &Session,
+        _dep_graph: &DepGraph,
+    ) -> Result<Box<dyn Any>, rustc_errors::ErrorReported> {
+        Ok(Box::new(()))
+    }
+
+    fn link(
+        &self,
+        _sess: &Session,
+        _codegen_results: Box<dyn Any>,
+        _outputs: &OutputFilenames,
+    ) -> Result<(), rustc_errors::ErrorReported> {
+        Ok(())
+    }
+}
+
+use rustc_data_structures::sync::MetadataRef;
+use rustc_target::spec::Target;
+
+struct DummyMetadataLoader;
+
+impl rustc_middle::middle::cstore::MetadataLoader for DummyMetadataLoader {
+    fn get_rlib_metadata(&self, _target: &Target, filename: &Path) -> Result<MetadataRef, String> {
+        use rustc_data_structures::{owning_ref::*, rustc_erase_owner};
+        use std::io::Read;
+
+        let file = std::fs::File::open(filename).map_err(|e| e.to_string())?;
+        let mut ar = ar::Archive::new(file);
+        while let Some(entry) = ar.next_entry() {
+            let mut entry = entry.map_err(|e| e.to_string())?;
+            if !entry.header().identifier().ends_with(b".rmeta") {
+                continue;
+            }
+
+            let mut contents = Vec::with_capacity(entry.header().size() as usize);
+            entry.read_to_end(&mut contents).map_err(|e| e.to_string())?;
+            let contents: OwningRef<Vec<u8>, [u8]> = OwningRef::new(contents).into();
+            return Ok(rustc_erase_owner!(contents.map_owner_box()));
+        }
+
+        Err("failed to find metadata".to_string())
+    }
+
+    fn get_dylib_metadata(&self, target: &Target, filename: &Path) -> Result<MetadataRef, String> {
+        Err("unimplemented dylib".to_string())
+    }
 }
 
 pub(crate) fn compute_crate_disambiguator(session: &Session) -> CrateDisambiguator {

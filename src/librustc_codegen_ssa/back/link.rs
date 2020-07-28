@@ -648,7 +648,7 @@ fn link_natively<'a, B: ArchiveBuilder<'a>>(
             status.signal() == Some(libc::SIGILL)
         }
 
-        #[cfg(windows)]
+        #[cfg(not(unix))]
         fn is_illegal_instruction(_status: &ExitStatus) -> bool {
             false
         }
@@ -1172,12 +1172,6 @@ fn exec_linker(
     flush_linked_file(&output, out_filename)?;
     return output;
 
-    #[cfg(unix)]
-    fn flush_linked_file(_: &io::Result<Output>, _: &Path) -> io::Result<()> {
-        Ok(())
-    }
-
-    #[cfg(windows)]
     fn flush_linked_file(
         command_output: &io::Result<Output>,
         out_filename: &Path,
@@ -1189,11 +1183,13 @@ fn exec_linker(
         //
         // А full writeup of the original Chrome bug can be found at
         // randomascii.wordpress.com/2018/02/25/compiler-bug-linker-bug-windows-kernel-bug/amp
-
-        if let &Ok(ref out) = command_output {
-            if out.status.success() {
-                if let Ok(of) = fs::OpenOptions::new().write(true).open(out_filename) {
-                    of.sync_all()?;
+        #[cfg(windows)]
+        {
+            if let &Ok(ref out) = command_output {
+                if out.status.success() {
+                    if let Ok(of) = fs::OpenOptions::new().write(true).open(out_filename) {
+                        of.sync_all()?;
+                    }
                 }
             }
         }
@@ -1201,15 +1197,17 @@ fn exec_linker(
         Ok(())
     }
 
-    #[cfg(unix)]
     fn command_line_too_big(err: &io::Error) -> bool {
-        err.raw_os_error() == Some(::libc::E2BIG)
-    }
-
-    #[cfg(windows)]
-    fn command_line_too_big(err: &io::Error) -> bool {
-        const ERROR_FILENAME_EXCED_RANGE: i32 = 206;
-        err.raw_os_error() == Some(ERROR_FILENAME_EXCED_RANGE)
+        cfg_if::cfg_if! {
+            if #[cfg(unix)] {
+                err.raw_os_error() == Some(::libc::E2BIG)
+            } else if #[cfg(windows)] {
+                const ERROR_FILENAME_EXCED_RANGE: i32 = 206;
+                err.raw_os_error() == Some(ERROR_FILENAME_EXCED_RANGE)
+            } else {
+                false
+            }
+        }
     }
 
     struct Escape<'a> {

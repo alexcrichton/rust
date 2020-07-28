@@ -12,6 +12,7 @@ test = false
 [dependencies]
 bitflags = "1.2.1"
 cc = "1.0.1"
+cfg-if = "0.1"
 num_cpus = "1.0"
 memmap = "0.7"
 log = "0.4.5"

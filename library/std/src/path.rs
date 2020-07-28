@@ -1896,7 +1896,7 @@ impl Path {
             // FIXME: Allow Redox prefixes
             self.has_root() || has_redox_scheme(self.as_u8_slice())
         } else {
-            self.has_root() && (cfg!(unix) || self.prefix().is_some())
+            self.has_root() && (cfg!(not(windows)) || self.prefix().is_some())
         }
     }
 

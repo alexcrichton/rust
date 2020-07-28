@@ -423,7 +423,7 @@ pub fn set_sigpipe_handler() {
     }
 }
 
-#[cfg(windows)]
+#[cfg(not(unix))]
 pub fn set_sigpipe_handler() {}
 
 // Extract output directory and file from matches.
@@ -504,6 +504,11 @@ fn stdout_isatty() -> bool {
         let mut out = 0;
         GetConsoleMode(handle, &mut out) != 0
     }
+}
+
+#[cfg(not(any(unix, windows)))]
+fn stdout_isatty() -> bool {
+    false
 }
 
 fn handle_explain(registry: Registry, code: &str, output: ErrorOutputType) {

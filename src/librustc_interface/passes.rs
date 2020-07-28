@@ -990,7 +990,10 @@ fn encode_and_write_metadata(
         let metadata_tmpdir = TempFileBuilder::new()
             .prefix("rmeta")
             .tempdir_in(out_filename.parent().unwrap())
-            .unwrap_or_else(|err| tcx.sess.fatal(&format!("couldn't create a temp dir: {}", err)));
+            .unwrap_or_else(|err| {
+                println!("{:?}", out_filename.parent());
+                tcx.sess.fatal(&format!("couldn't create a temp dir: {}", err))
+            });
         let metadata_filename = emit_metadata(tcx.sess, &metadata, &metadata_tmpdir);
         if let Err(e) = fs::rename(&metadata_filename, &out_filename) {
             tcx.sess.fatal(&format!("failed to write {}: {}", out_filename.display(), e));

@@ -24,7 +24,7 @@
 	url = https://github.com/rust-lang/rust-by-example.git
 [submodule "library/stdarch"]
 	path = library/stdarch
-	url = https://github.com/rust-lang/stdarch.git
+	url = https://github.com/alexcrichton/stdarch.git
 [submodule "src/doc/rustc-dev-guide"]
 	path = src/doc/rustc-dev-guide
 	url = https://github.com/rust-lang/rustc-dev-guide.git

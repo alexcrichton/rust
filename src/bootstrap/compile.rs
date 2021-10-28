@@ -338,7 +338,7 @@ pub fn std_cargo(builder: &Builder<'_>, target: TargetSelection, stage: u32, car
     // But we don't bother for the stage 0 compiler because it's never used
     // with LTO.
     if stage >= 1 {
-        cargo.rustflag("-Cembed-bitcode=yes");
+        // cargo.rustflag("-Cembed-bitcode=yes");
     }
 
     // By default, rustc does not include unwind tables unless they are required

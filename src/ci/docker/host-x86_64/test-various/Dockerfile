@@ -18,7 +18,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   wget \
   patch
 
-RUN curl -sL https://nodejs.org/dist/v15.14.0/node-v15.14.0-linux-x64.tar.xz | \
+RUN curl -sL https://github.com/bytecodealliance/wasmtime/releases/download/v1.0.0/wasmtime-v1.0.0-x86_64-linux.tar.xz | \
   tar -xJ
 
 WORKDIR /build/

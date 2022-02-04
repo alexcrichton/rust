@@ -1606,6 +1606,12 @@ note: if you're sure you want to do this, please open an issue as to why. In the
             cmd.arg("--rustfix-coverage");
         }
 
+        if let Some(config) = builder.config.target_config.get(&target) {
+            if let Some(tool) = &config.runtool {
+                cmd.arg("--runtool").arg(tool);
+            }
+        }
+
         cmd.env("BOOTSTRAP_CARGO", &builder.initial_cargo);
 
         cmd.arg("--channel").arg(&builder.config.channel);
@@ -2030,12 +2036,15 @@ impl Step for Crate {
             cargo.arg("--quiet");
         }
 
-        if target.contains("emscripten") {
+        let runtool = builder.config.target_config.get(&target).and_then(|t| t.runtool.as_ref());
+        if let Some(tool) = runtool {
+            cargo.env(format!("CARGO_TARGET_{}_RUNNER", envify(&target.triple)), tool);
+        } else if target.contains("emscripten") {
             cargo.env(
                 format!("CARGO_TARGET_{}_RUNNER", envify(&target.triple)),
                 builder.config.nodejs.as_ref().expect("nodejs not configured"),
             );
-        } else if target.starts_with("wasm32") {
+        } else if target == "wasm32-unknown-unknown" {
             let node = builder.config.nodejs.as_ref().expect("nodejs not configured");
             let runner =
                 format!("{} {}/src/etc/wasm32-shim.js", node.display(), builder.src.display());

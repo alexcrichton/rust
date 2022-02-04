@@ -674,7 +674,9 @@ impl Config {
         // (in contrast to `wasm32` which also matches non-bare targets like
         // asmjs-unknown-emscripten).
         let matches_wasm32_alias = || {
-            self.target == "wasm32-unknown-unknown" && matches!(name, "emscripten" | "wasm32-bare")
+            (self.target == "wasm32-unknown-unknown"
+                && matches!(name, "emscripten" | "wasm32-bare"))
+                || (self.target == "wasm32-wasi" && matches!(name, "emscripten"))
         };
 
         let is_match = name == "test" ||
@@ -950,7 +952,7 @@ pub fn make_test_description<R: Read>(
         ignore |= !has_shadow_call_stack
             && config.parse_name_directive(ln, "needs-sanitizer-shadow-call-stack");
         ignore |= !config.can_unwind() && config.parse_name_directive(ln, "needs-unwind");
-        ignore |= config.target == "wasm32-unknown-unknown"
+        ignore |= config.target.contains("wasm32")
             && config.parse_name_directive(ln, directives::CHECK_RUN_RESULTS);
         ignore |= config.debugger == Some(Debugger::Cdb) && ignore_cdb(config, ln);
         ignore |= config.debugger == Some(Debugger::Gdb) && ignore_gdb(config, ln);

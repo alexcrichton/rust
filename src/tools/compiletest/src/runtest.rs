@@ -2094,7 +2094,7 @@ impl<'test> TestCx<'test> {
             }
         // If this is otherwise wasm, then run tests under nodejs with our
         // shim
-        } else if self.config.target.contains("wasm32") {
+        } else if self.config.target == "wasm32-unknown-unknown" {
             if let Some(ref p) = self.config.nodejs {
                 args.push(p.clone());
             } else {

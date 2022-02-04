@@ -407,6 +407,7 @@ pub struct Target {
     pub wasi_root: Option<PathBuf>,
     pub qemu_rootfs: Option<PathBuf>,
     pub no_std: bool,
+    pub runtool: Option<String>,
 }
 
 impl Target {
@@ -746,6 +747,7 @@ define_config! {
         wasi_root: Option<String> = "wasi-root",
         qemu_rootfs: Option<String> = "qemu-rootfs",
         no_std: Option<bool> = "no-std",
+        runtool: Option<String> = "runtool",
     }
 }
 
@@ -1174,6 +1176,9 @@ impl Config {
                 }
                 if let Some(s) = cfg.no_std {
                     target.no_std = s;
+                }
+                if let Some(s) = &cfg.runtool {
+                    target.runtool = Some(s.clone());
                 }
                 target.cc = cfg.cc.map(PathBuf::from);
                 target.cxx = cfg.cxx.map(PathBuf::from);

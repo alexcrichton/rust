@@ -1,19 +1,18 @@
-//! System bindings for the wasi preview 2 target.
+//! System bindings for the WASI platforms.
 //!
-//! This is the next evolution of the original wasi target, and is intended to
-//! replace that target over time.
-//!
-//! To begin with, this target mirrors the wasi target 1 to 1, but over
-//! time this will change significantly.
+//! This module contains the facade (aka platform-specific) implementations of
+//! OS level functionality for WASI. Currently this includes both WASIp1 and
+//! WASIp2.
 
 #[allow(unused)]
 #[path = "../wasm/atomics/futex.rs"]
 pub mod futex;
 
-#[path = "../wasip1/os.rs"]
 pub mod os;
 #[path = "../unsupported/pipe.rs"]
 pub mod pipe;
+pub mod stack_overflow;
+#[path = "../unix/time.rs"]
 pub mod time;
 
 #[path = "../unsupported/common.rs"]
@@ -23,13 +22,16 @@ mod common;
 
 pub use common::*;
 
-#[path = "../wasip1/helpers.rs"]
 mod helpers;
 
 // The following exports are listed individually to work around Rust's glob
 // import conflict rules. If we glob export `helpers` and `common` together,
 // then the compiler complains about conflicts.
 
-pub(crate) use helpers::{abort_internal, decode_error_kind, err2io, is_interrupted};
+#[cfg(target_env = "p1")]
+pub(crate) use helpers::err2io;
+pub(crate) use helpers::{abort_internal, decode_error_kind, is_interrupted};
+pub(crate) use os::{cvt, cvt_r};
 
+#[cfg(not(target_env = "p1"))]
 mod cabi_realloc;

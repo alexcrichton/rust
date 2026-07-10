@@ -17,22 +17,22 @@
 mod barrier;
 mod condvar;
 mod lazy_lock;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod mpmc;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod mpsc;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod mpsc_sync;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod mutex;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod once;
 mod once_lock;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod oneshot;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod reentrant_lock;
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod rwlock;
 
 #[path = "../common/mod.rs"]

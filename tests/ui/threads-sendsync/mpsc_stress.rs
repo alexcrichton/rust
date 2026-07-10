@@ -2,9 +2,9 @@
 //@ compile-flags:--test
 //@ needs-threads
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::mpsc::{channel, RecvError, RecvTimeoutError, TryRecvError};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::mpsc::{RecvError, RecvTimeoutError, TryRecvError, channel};
 use std::thread;
 use std::time::Duration;
 
@@ -18,7 +18,7 @@ struct Barrier {
 impl Barrier {
     fn new(count: usize) -> Vec<Barrier> {
         let shared = Arc::new(AtomicUsize::new(0));
-        (0..count).map(|_| Barrier { shared: shared.clone(), count: count }).collect()
+        (0..count).map(|_| Barrier { shared: shared.clone(), count }).collect()
     }
 
     fn new2() -> (Barrier, Barrier) {
@@ -30,7 +30,7 @@ impl Barrier {
     fn wait(self) {
         self.shared.fetch_add(1, Ordering::SeqCst);
         while self.shared.load(Ordering::SeqCst) != self.count {
-            #[cfg(target_env = "sgx")]
+            #[cfg(any(target_env = "sgx", target_os = "wasi"))]
             thread::yield_now();
         }
     }

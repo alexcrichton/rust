@@ -3,7 +3,7 @@
 #![allow(deprecated)]
 //@ needs-threads
 
-use std::sync::mpsc::{channel, TryRecvError};
+use std::sync::mpsc::{TryRecvError, channel};
 use std::thread;
 
 pub fn main() {
@@ -17,6 +17,9 @@ pub fn main() {
             Ok(()) => break,
             Err(TryRecvError::Empty) => {}
             Err(TryRecvError::Disconnected) => unreachable!(),
+        }
+        if cfg!(target_os = "wasi") {
+            thread::yield_now();
         }
     }
     t.join();

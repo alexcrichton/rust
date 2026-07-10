@@ -13,7 +13,7 @@ use crate::fs;
 use crate::marker::PhantomData;
 use crate::mem::ManuallyDrop;
 #[cfg(not(any(
-    all(target_arch = "wasm32", not(target_os = "emscripten")),
+    all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))),
     target_env = "sgx",
     target_os = "hermit",
     target_os = "trusty",
@@ -105,10 +105,10 @@ impl BorrowedFd<'_> {
     /// Creates a new `OwnedFd` instance that shares the same underlying file
     /// description as the existing `BorrowedFd` instance.
     #[cfg(not(any(
-        all(target_arch = "wasm32", not(target_os = "emscripten")),
+        all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))),
         target_os = "hermit",
         target_os = "trusty",
-        target_os = "motor"
+        target_os = "motor",
     )))]
     #[stable(feature = "io_safety", since = "1.63.0")]
     pub fn try_clone_to_owned(&self) -> io::Result<OwnedFd> {
@@ -116,7 +116,7 @@ impl BorrowedFd<'_> {
         // CLOEXEC flag, and currently that's done via F_DUPFD_CLOEXEC. This
         // is a POSIX flag that was added to Linux in 2.6.24.
         #[cfg(not(any(target_os = "espidf", target_os = "vita")))]
-        let cmd = libc::F_DUPFD_CLOEXEC;
+        let cmd = 6;
 
         // For ESP-IDF, F_DUPFD is used instead, because the CLOEXEC semantics
         // will never be supported, as this is a bare metal framework with
@@ -133,7 +133,7 @@ impl BorrowedFd<'_> {
     /// Creates a new `OwnedFd` instance that shares the same underlying file
     /// description as the existing `BorrowedFd` instance.
     #[cfg(any(
-        all(target_arch = "wasm32", not(target_os = "emscripten")),
+        all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))),
         target_os = "hermit",
         target_os = "trusty"
     ))]

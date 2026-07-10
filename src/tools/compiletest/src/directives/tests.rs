@@ -877,6 +877,7 @@ fn threads_support() {
         ("wasm64-unknown-unknown", false),
         ("wasm32-wasip1", false),
         ("wasm32-wasip1-threads", true),
+        ("wasm32-wasip3", true),
     ];
     for (target, has_threads) in threads {
         let config = cfg().target(target).build();

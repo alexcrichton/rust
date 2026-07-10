@@ -1,7 +1,7 @@
 //@ run-pass
 //@ needs-threads
 
-use std::sync::mpsc::{channel, Receiver};
+use std::sync::mpsc::{Receiver, channel};
 use std::thread;
 
 fn periodical(n: isize) -> Receiver<bool> {
@@ -18,6 +18,9 @@ fn periodical(n: isize) -> Receiver<bool> {
                 Ok(()) => {}
                 Err(..) => break,
             }
+            if cfg!(target_os = "wasi") {
+                thread::yield_now();
+            }
         }
     });
     return port;
@@ -33,6 +36,9 @@ fn integers() -> Receiver<isize> {
                 Err(..) => break,
             }
             i = i + 1;
+            if cfg!(target_os = "wasi") {
+                thread::yield_now();
+            }
         }
     });
     return port;

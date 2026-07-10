@@ -68,7 +68,6 @@ fn connect_timeout_error() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn listen_localhost() {
     let listener = t!(TcpListener::bind(LOCALHOST_IP4));
     let addr = t!(listener.local_addr());
@@ -85,7 +84,6 @@ fn listen_localhost() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn connect_loopback() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -103,7 +101,6 @@ fn connect_loopback() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn smoke_test() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -124,7 +121,6 @@ fn smoke_test() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn read_eof() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -144,7 +140,6 @@ fn read_eof() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn write_close() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -173,7 +168,6 @@ fn write_close() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn multiple_connect_serial() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -196,7 +190,6 @@ fn multiple_connect_serial() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn multiple_connect_interleaved_greedy_schedule() {
     const MAX: usize = 10;
     each_ip(&mut |acceptor| {
@@ -234,7 +227,6 @@ fn multiple_connect_interleaved_greedy_schedule() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn multiple_connect_interleaved_lazy_schedule() {
     const MAX: usize = 10;
     each_ip(&mut |acceptor| {
@@ -270,7 +262,6 @@ fn multiple_connect_interleaved_lazy_schedule() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn socket_and_peer_name() {
     each_ip(&mut |listener| {
         let addr = t!(listener.local_addr());
@@ -286,7 +277,6 @@ fn socket_and_peer_name() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn partial_read() {
     each_ip(&mut |srv| {
         let addr = t!(srv.local_addr());
@@ -308,7 +298,6 @@ fn partial_read() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn read_buf() {
     each_ip(&mut |srv| {
         let addr = t!(srv.local_addr());
@@ -403,7 +392,6 @@ fn double_bind() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn tcp_clone_smoke() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -435,7 +423,6 @@ fn tcp_clone_smoke() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn tcp_clone_two_read() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -470,7 +457,6 @@ fn tcp_clone_two_read() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn tcp_clone_two_write() {
     each_ip(&mut |acceptor| {
         let addr = t!(acceptor.local_addr());
@@ -500,7 +486,6 @@ fn tcp_clone_two_write() {
 #[test]
 // FIXME: https://github.com/fortanix/rust-sgx/issues/110
 #[cfg_attr(target_env = "sgx", ignore)]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn shutdown_smoke() {
     each_ip(&mut |a| {
         let addr = t!(a.local_addr());
@@ -523,7 +508,6 @@ fn shutdown_smoke() {
 #[test]
 // FIXME: https://github.com/fortanix/rust-sgx/issues/110
 #[cfg_attr(target_env = "sgx", ignore)]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn close_readwrite_smoke() {
     each_ip(&mut |a| {
         let addr = t!(a.local_addr());
@@ -566,7 +550,8 @@ fn close_readwrite_smoke() {
 #[cfg_attr(target_env = "sgx", ignore)]
 // On windows, shutdown will not wake up blocking I/O operations.
 #[cfg_attr(windows, ignore)]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
+// WASI doesn't support concurrent shutdown+read at this time
+#[cfg_attr(target_os = "wasi", ignore)]
 fn close_read_wakes_up() {
     each_ip(&mut |listener| {
         let addr = t!(listener.local_addr());
@@ -594,7 +579,6 @@ fn close_read_wakes_up() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn clone_while_reading() {
     each_ip(&mut |accept| {
         let addr = t!(accept.local_addr());
@@ -635,7 +619,6 @@ fn clone_while_reading() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn clone_accept_smoke() {
     each_ip(&mut |a| {
         let addr = t!(a.local_addr());
@@ -654,7 +637,6 @@ fn clone_accept_smoke() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn clone_accept_concurrent() {
     each_ip(&mut |a| {
         let addr = t!(a.local_addr());
@@ -743,7 +725,6 @@ fn debug() {
     ignore
 )]
 #[cfg_attr(target_env = "sgx", ignore)] // FIXME: https://github.com/fortanix/rust-sgx/issues/31
-#[cfg_attr(target_os = "wasi", ignore)] // timeout not supported
 #[test]
 fn timeouts() {
     let listener = t!(TcpListener::bind(LOCALHOST_IP4));
@@ -771,7 +752,6 @@ fn timeouts() {
 
 #[test]
 #[cfg_attr(target_env = "sgx", ignore)] // FIXME: https://github.com/fortanix/rust-sgx/issues/31
-#[cfg_attr(target_os = "wasi", ignore)] // timeout not supported
 fn test_read_timeout() {
     let listener = t!(TcpListener::bind(LOCALHOST_IP4));
 
@@ -792,7 +772,6 @@ fn test_read_timeout() {
 
 #[test]
 #[cfg_attr(target_env = "sgx", ignore)] // FIXME: https://github.com/fortanix/rust-sgx/issues/31
-#[cfg_attr(target_os = "wasi", ignore)] // timeout not supported
 fn test_read_with_timeout() {
     let listener = t!(TcpListener::bind(LOCALHOST_IP4));
 
@@ -837,7 +816,7 @@ fn test_timeout_zero_duration() {
 
 #[test]
 #[cfg_attr(target_env = "sgx", ignore)]
-#[cfg_attr(target_os = "wasi", ignore)] // linger not supported
+#[cfg_attr(target_os = "wasi", ignore)] // SO_LINGER not supported in WASI
 fn linger() {
     let listener = t!(TcpListener::bind(LOCALHOST_IP4));
 
@@ -852,7 +831,6 @@ fn linger() {
 
 #[test]
 #[cfg_attr(target_env = "sgx", ignore)]
-#[cfg_attr(target_os = "wasi", ignore)]
 fn keepalive() {
     let listener = t!(TcpListener::bind(LOCALHOST_IP4));
     let stream = t!(TcpStream::connect(t!(listener.local_addr())));
@@ -917,7 +895,7 @@ fn set_nonblocking() {
 
 #[test]
 #[cfg_attr(target_env = "sgx", ignore)] // FIXME: https://github.com/fortanix/rust-sgx/issues/31
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
+#[cfg_attr(target_os = "wasi", ignore)] // not supported on WASI
 fn peek() {
     each_ip(&mut |srv| {
         let addr = t!(srv.local_addr());

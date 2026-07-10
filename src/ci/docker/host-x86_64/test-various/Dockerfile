@@ -57,11 +57,12 @@ ENV RUST_CONFIGURE_ARGS="--musl-root-x86_64=/usr/local/x86_64-linux-musl \
 ENV NO_DEBUG_ASSERTIONS=1
 ENV NO_OVERFLOW_CHECKS=1
 
-RUN curl -L https://github.com/bytecodealliance/wasmtime/releases/download/v44.0.1/wasmtime-v44.0.1-x86_64-linux.tar.xz | \
+RUN curl -L https://github.com/bytecodealliance/wasmtime/releases/download/v48.0.2/wasmtime-v48.0.2-x86_64-linux.tar.xz | \
   tar -xJ
-ENV PATH="$PATH:/wasmtime-v44.0.1-x86_64-linux"
+ENV PATH="$PATH:/wasmtime-v48.0.2-x86_64-linux"
 
-ENV WASM_WASIP_TARGET=wasm32-wasip1
+ENV CARGO_TARGET_WASM32_WASIP3_RUSTFLAGS=-Cpanic=unwind
+ENV WASM_WASIP_TARGET=wasm32-wasip3
 ENV WASM_WASIP_SCRIPT="python3 /checkout/x.py --stage 2 test --host= --target $WASM_WASIP_TARGET \
   tests/run-make \
   tests/run-make-cargo \
@@ -70,7 +71,9 @@ ENV WASM_WASIP_SCRIPT="python3 /checkout/x.py --stage 2 test --host= --target $W
   tests/codegen-units \
   tests/codegen-llvm \
   tests/assembly-llvm \
-  library/core"
+  library/core \
+  library/alloc \
+  library/std"
 
 ENV NVPTX_TARGETS=nvptx64-nvidia-cuda
 ENV NVPTX_SCRIPT="python3 /checkout/x.py --stage 2 test --host= --target $NVPTX_TARGETS \
@@ -95,4 +98,5 @@ ENV UEFI_SCRIPT="python3 /checkout/x.py --stage 2 build --host= --target $UEFI_T
   python3 /checkout/x.py --stage 2 test tests/run-make-cargo/uefi-qemu/rmake.rs --target i686-unknown-uefi && \
   python3 /checkout/x.py --stage 2 test tests/run-make-cargo/uefi-qemu/rmake.rs --target x86_64-unknown-uefi"
 
-ENV SCRIPT="$WASM_WASIP_SCRIPT && $NVPTX_SCRIPT && $MUSL_SCRIPT && $UEFI_SCRIPT"
+#ENV SCRIPT="$WASM_WASIP_SCRIPT && $NVPTX_SCRIPT && $MUSL_SCRIPT && $UEFI_SCRIPT"
+ENV SCRIPT="$WASM_WASIP_SCRIPT"

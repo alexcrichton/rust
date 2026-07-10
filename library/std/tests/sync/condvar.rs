@@ -18,7 +18,7 @@ nonpoison_and_poison_unwrap_test!(
 );
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_notify_one() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -38,7 +38,7 @@ fn poison_notify_one() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_notify_one() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -58,7 +58,7 @@ fn nonpoison_notify_one() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_notify_all() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -97,7 +97,7 @@ fn poison_notify_all() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_notify_all() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -136,7 +136,7 @@ fn nonpoison_notify_all() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_test_mutex_arc_condvar() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -171,7 +171,7 @@ fn poison_test_mutex_arc_condvar() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_test_mutex_arc_condvar() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -206,7 +206,7 @@ fn nonpoison_test_mutex_arc_condvar() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_wait_while() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -229,7 +229,7 @@ fn poison_wait_while() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_wait_while() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -253,7 +253,7 @@ fn nonpoison_wait_while() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_wait_timeout_wait() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -274,7 +274,7 @@ fn poison_wait_timeout_wait() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_wait_timeout_wait() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -295,7 +295,7 @@ fn nonpoison_wait_timeout_wait() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_wait_timeout_while_wait() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -309,7 +309,7 @@ fn poison_wait_timeout_while_wait() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_wait_timeout_while_wait() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -323,7 +323,7 @@ fn nonpoison_wait_timeout_while_wait() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_wait_timeout_while_instant_satisfy() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -337,7 +337,7 @@ fn poison_wait_timeout_while_instant_satisfy() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_wait_timeout_while_instant_satisfy() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -351,7 +351,7 @@ fn nonpoison_wait_timeout_while_instant_satisfy() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_wait_timeout_while_wake() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -377,7 +377,7 @@ fn poison_wait_timeout_while_wake() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_wait_timeout_while_wake() {
     use std::sync::nonpoison::{Condvar, Mutex};
 
@@ -402,7 +402,7 @@ fn nonpoison_wait_timeout_while_wake() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn poison_wait_timeout_wake() {
     use std::sync::poison::{Condvar, Mutex};
 
@@ -442,7 +442,7 @@ fn poison_wait_timeout_wake() {
 }
 
 #[test]
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))] // No threads.
+#[cfg(not(target_os = "emscripten"))] // No threads.
 fn nonpoison_wait_timeout_wake() {
     use std::sync::nonpoison::{Condvar, Mutex};
 

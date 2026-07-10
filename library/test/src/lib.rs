@@ -666,7 +666,7 @@ pub fn run_test(
             // the test synchronously, regardless of the concurrency
             // level.
             let supports_threads = !cfg!(target_os = "emscripten")
-                && !cfg!(target_family = "wasm")
+                && !(cfg!(target_family = "wasm") && !cfg!(target_env = "p3"))
                 && !cfg!(target_os = "zkvm");
             if supports_threads {
                 let cfg = thread::Builder::new().name(name.as_slice().to_owned());

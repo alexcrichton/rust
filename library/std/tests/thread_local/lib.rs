@@ -1,6 +1,6 @@
 #![feature(cfg_target_thread_local)]
 
-#[cfg(not(any(target_os = "emscripten", target_os = "wasi")))]
+#[cfg(not(target_os = "emscripten"))]
 mod tests;
 
 mod dynamic_tests;

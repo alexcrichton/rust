@@ -43,7 +43,7 @@ fn const_lazy_default() {
 }
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 fn sync_lazy_new() {
     static CALLED: AtomicUsize = AtomicUsize::new(0);
     static SYNC_LAZY: LazyLock<i32> = LazyLock::new(|| {
@@ -90,7 +90,7 @@ fn sync_lazy_default() {
 }
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 fn static_sync_lazy() {
     static XS: LazyLock<Vec<i32>> = LazyLock::new(|| {
         let mut xs = Vec::new();

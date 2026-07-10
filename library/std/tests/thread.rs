@@ -5,7 +5,7 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 #[cfg_attr(miri, ignore)] // Miri does not like the thread leak
 fn sleep_very_long() {
     let finished = Arc::new(Mutex::new(false));

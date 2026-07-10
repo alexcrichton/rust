@@ -856,7 +856,7 @@ impl Config {
         // Wasm targets don't have threads unless `-threads` is in the target
         // name, such as `wasm32-wasip1-threads`.
         if self.target.starts_with("wasm") {
-            return self.target.contains("threads");
+            return self.target.contains("threads") || self.target.contains("wasip3");
         }
         true
     }

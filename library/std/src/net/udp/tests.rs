@@ -28,7 +28,6 @@ fn bind_error() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn socket_smoke_test_ip4() {
     each_ip(&mut |server, client| {
         let server_ip = t!(server.local_addr());
@@ -71,7 +70,6 @@ fn socket_and_peer_name() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn udp_clone_smoke() {
     each_ip(&mut |sock1, sock2| {
         let addr1 = t!(sock1.local_addr());
@@ -105,7 +103,6 @@ fn udp_clone_smoke() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn udp_clone_two_read() {
     each_ip(&mut |sock1, sock2| {
         let addr1 = t!(sock1.local_addr());
@@ -138,7 +135,6 @@ fn udp_clone_two_read() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // no threads
 fn udp_clone_two_write() {
     each_ip(&mut |sock1, sock2| {
         let addr2 = t!(sock2.local_addr());
@@ -197,7 +193,6 @@ fn debug() {
     ),
     ignore
 )]
-#[cfg_attr(target_os = "wasi", ignore)] // timeout not supported
 #[test]
 fn timeouts() {
     let stream = t!(UdpSocket::bind(LOCALHOST_IP4));
@@ -221,7 +216,6 @@ fn timeouts() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // timeout not supported
 fn test_read_timeout() {
     let stream = t!(UdpSocket::bind(LOCALHOST_IP4));
     t!(stream.set_read_timeout(Some(Duration::from_millis(1000))));
@@ -244,7 +238,6 @@ fn test_read_timeout() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // timeout not supported
 fn test_read_with_timeout() {
     let stream = t!(UdpSocket::bind(LOCALHOST_IP4));
     let addr = t!(stream.local_addr());
@@ -300,7 +293,7 @@ fn connect_send_recv() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // peek not supported
+#[cfg_attr(target_os = "wasi", ignore)] // peek not supported on WASI
 fn connect_send_peek_recv() {
     each_ip(&mut |socket, _| {
         let addr = t!(socket.local_addr());
@@ -323,7 +316,7 @@ fn connect_send_peek_recv() {
 }
 
 #[test]
-#[cfg_attr(target_os = "wasi", ignore)] // peek_from not supported
+#[cfg_attr(target_os = "wasi", ignore)] // peek not supported on WASI
 fn peek_from() {
     each_ip(&mut |socket, _| {
         let addr = t!(socket.local_addr());

@@ -4,7 +4,7 @@ use std::sync::{Arc, Barrier};
 use std::thread;
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 fn test_barrier() {
     const N: usize = 10;
 

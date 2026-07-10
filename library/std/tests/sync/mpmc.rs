@@ -9,6 +9,11 @@ pub fn stress_factor() -> usize {
     }
 }
 
+pub fn yield_in_infinite_loop_if_necessary() {
+    #[cfg(any(target_os = "wasi", target_env = "sgx"))]
+    thread::yield_now();
+}
+
 #[test]
 fn smoke() {
     let (tx, rx) = channel::<i32>();
@@ -103,7 +108,9 @@ fn port_gone_concurrent() {
     let _t = thread::spawn(move || {
         rx.recv().unwrap();
     });
-    while tx.send(1).is_ok() {}
+    while tx.send(1).is_ok() {
+        yield_in_infinite_loop_if_necessary();
+    }
 }
 
 #[test]
@@ -113,7 +120,9 @@ fn port_gone_concurrent_shared() {
     let _t = thread::spawn(move || {
         rx.recv().unwrap();
     });
-    while tx.send(1).is_ok() && tx2.send(1).is_ok() {}
+    while tx.send(1).is_ok() && tx2.send(1).is_ok() {
+        yield_in_infinite_loop_if_necessary();
+    }
 }
 
 #[test]
@@ -139,7 +148,9 @@ fn chan_gone_concurrent() {
         tx.send(1).unwrap();
         tx.send(1).unwrap();
     });
-    while rx.recv().is_ok() {}
+    while rx.recv().is_ok() {
+        yield_in_infinite_loop_if_necessary();
+    }
 }
 
 #[test]
@@ -665,6 +676,7 @@ fn test_recv_try_iter() {
                 }
             }
             request_tx.send(()).unwrap();
+            yield_in_infinite_loop_if_necessary();
         }
     });
 

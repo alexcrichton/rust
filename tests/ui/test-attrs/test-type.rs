@@ -3,6 +3,7 @@
 //@ check-run-results
 //@ normalize-stdout: "finished in \d+\.\d+s" -> "finished in $$TIME"
 //@ needs-threads
+//@ needs-unwind
 //@ run-pass
 
 #[test]

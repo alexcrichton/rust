@@ -2,7 +2,7 @@ use core::mem::ManuallyDrop;
 
 use super::FileDesc;
 use crate::io::IoSlice;
-use crate::os::unix::io::FromRawFd;
+use crate::os::fd::FromRawFd;
 
 #[test]
 fn limit_vector_count() {

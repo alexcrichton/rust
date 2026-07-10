@@ -4,12 +4,14 @@ use std::sync::atomic::Ordering::SeqCst;
 use std::sync::mpsc::channel;
 use std::{panic, thread};
 
+use crate::mpmc::yield_in_infinite_loop_if_necessary;
+
 fn spawn_and_wait<R: Send + 'static>(f: impl FnOnce() -> R + Send + 'static) -> R {
     thread::spawn(f).join().unwrap()
 }
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 fn sync_once_cell() {
     static ONCE_CELL: OnceLock<i32> = OnceLock::new();
 
@@ -34,7 +36,7 @@ fn sync_once_cell_get_mut() {
 }
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 fn sync_once_cell_drop() {
     static DROP_CNT: AtomicUsize = AtomicUsize::new(0);
     struct Dropper;
@@ -147,7 +149,7 @@ fn eval_once_macro() {
 }
 
 #[test]
-#[cfg_attr(any(target_os = "emscripten", target_os = "wasi"), ignore)] // no threads
+#[cfg_attr(target_os = "emscripten", ignore)] // no threads
 fn sync_once_cell_does_not_leak_partially_constructed_boxes() {
     static ONCE_CELL: OnceLock<String> = OnceLock::new();
 
@@ -165,8 +167,7 @@ fn sync_once_cell_does_not_leak_partially_constructed_boxes() {
                     tx.send(msg).unwrap();
                     break;
                 }
-                #[cfg(target_env = "sgx")]
-                std::thread::yield_now();
+                yield_in_infinite_loop_if_necessary();
             }
         });
     }

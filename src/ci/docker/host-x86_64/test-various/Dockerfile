@@ -48,7 +48,8 @@ RUN curl -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-3
 ENV WASI_SDK_PATH=/wasi-sdk-34.0-x86_64-linux
 
 ENV RUST_CONFIGURE_ARGS="--musl-root-x86_64=/usr/local/x86_64-linux-musl \
-  --set rust.lld"
+  --set rust.lld \
+  --set rust.wasm-panic-unwind-default"
 
 # Some run-make tests have assertions about code size, and enabling debug
 # assertions in libstd causes the binary to be much bigger than it would
@@ -70,7 +71,8 @@ ENV WASM_WASIP_SCRIPT="python3 /checkout/x.py --stage 2 test --host= --target $W
   tests/codegen-units \
   tests/codegen-llvm \
   tests/assembly-llvm \
-  library/core"
+  library/core \
+  library/alloc"
 
 ENV NVPTX_TARGETS=nvptx64-nvidia-cuda
 ENV NVPTX_SCRIPT="python3 /checkout/x.py --stage 2 test --host= --target $NVPTX_TARGETS \
